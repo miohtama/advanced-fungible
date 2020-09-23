@@ -29,7 +29,8 @@ pub struct Ledger {
 }
 
 
-pub trait TokenReceiver {
+#[ext_contract(token_receiver)]
+pub trait ExtTokenReceiver {
 
     // Resolves to None on successful call, an error message on failure
     fn process_token_received(&self, sender_id: AccountId, amount: Balance, message: [u8]) -> Option<String>;
@@ -95,7 +96,7 @@ impl Ledger {
     }
 
     fn notify_receiver(&mut self, new_owner_id: AccountId, amount_received: Balance, amount_total: Balance) {
-        // token_receiver::process_token_receiver(amount_received, amount_total, [], &new_owner_id, 0, SINGLE_CALL_GAS);
+        //token_receiver::process_token_receiver(amount_received, amount_total, [], &new_owner_id, 0, SINGLE_CALL_GAS);
     }
 
     fn finalize_tranfer() {
