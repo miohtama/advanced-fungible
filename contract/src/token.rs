@@ -6,7 +6,6 @@
 
 // To conserve gas, efficient serialization is achieved through Borsh (http://borsh.io/)
 use near_sdk::borsh::{ self, BorshDeserialize, BorshSerialize};
-use near_sdk::wee_alloc;
 use near_sdk::{ env, near_bindgen, ext_contract, AccountId, Balance, Promise, StorageUsage};
 use near_sdk::collections::LookupMap;
 
@@ -16,6 +15,7 @@ const SINGLE_CALL_GAS: u64 = 200000000000000;
 /**
  * Hold accounting data for one token.
  */
+#[derive(BorshDeserialize, BorshSerialize)]
 pub struct Ledger {
 
     /// sha256(AccountID) -> Account details.
@@ -105,6 +105,7 @@ impl Ledger {
  *
  * All metadata fields are optional.
  */
+#[derive(BorshDeserialize, BorshSerialize)]
  pub struct Metadata {
 
     // Name of the token
@@ -124,6 +125,8 @@ impl Ledger {
 /**
  * Presents on token.
  */
+#[near_bindgen]
+#[derive(BorshDeserialize, BorshSerialize)]
 pub struct Token {
 
     pub ledger: Ledger,

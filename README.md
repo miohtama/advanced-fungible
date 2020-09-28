@@ -60,7 +60,16 @@ Test that baseline tests work for the JS core package:
 
 ```sh
 git clone git@github.com:near/near-api-js.git
+export NEAR_ENV=ci
 yarn test
+```
+
+Build contracts
+
+```sh
+cd contract
+rustup target add wasm32-unknown-unknown
+cargo build --target wasm32-unknown-unknown --release
 ```
 
 Run our own tests:
