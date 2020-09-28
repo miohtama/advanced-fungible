@@ -10,9 +10,6 @@ use near_sdk::wee_alloc;
 use near_sdk::{ env, near_bindgen, ext_contract, AccountId, Balance, Promise, StorageUsage};
 use near_sdk::collections::LookupMap;
 
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
 // Prepaid gas for making a single simple call.
 const SINGLE_CALL_GAS: u64 = 200000000000000;
 
@@ -22,7 +19,7 @@ const SINGLE_CALL_GAS: u64 = 200000000000000;
 pub struct Ledger {
 
     /// sha256(AccountID) -> Account details.
-    pub balances: LookupMap<Vec<u8>, Balance>,
+    pub balances: LookupMap<AccountId, Balance>,
 
     /// Total supply of the all token.
     pub total_supply: Balance,
@@ -33,7 +30,7 @@ pub struct Ledger {
 pub trait ExtTokenReceiver {
 
     // Resolves to None on successful call, an error message on failure
-    fn process_token_received(&self, sender_id: AccountId, amount: Balance, message: [u8]) -> Option<String>;
+    fn process_token_received(&self, sender_id: AccountId, amount: Balance, message: Vec<u8>) -> Option<String>;
 }
 
 
@@ -42,8 +39,7 @@ impl Ledger {
     /// Helper method to get the account details for `owner_id`.
     fn get_balance(&self, owner_id: &AccountId) -> u128 {
         assert!(env::is_valid_account_id(owner_id.as_bytes()), "Owner's account ID is invalid");
-        let account_hash = env::sha256(owner_id.as_bytes());
-        match self.balances.get(&account_hash) {
+        match self.balances.get(owner_id) {
             Some(x) => return x,
             None => return 0,
         }
@@ -51,8 +47,7 @@ impl Ledger {
 
     /// Helper method to set the account details for `owner_id` to the state.
     fn set_balance(&mut self, owner_id: &AccountId, balance: Balance) {
-        let account_hash = env::sha256(owner_id.as_bytes());
-        self.balances.insert(&account_hash, &balance);
+        self.balances.insert(owner_id, &balance);
     }
 
     /// Transfers the `amount` of tokens from `owner_id` to the `new_owner_id`.
@@ -64,7 +59,7 @@ impl Ledger {
     ///   the account of `owner_id` should be greater or equal than the transfer `amount`.
     /// * Caller of the method has to attach deposit enough to cover storage difference at the
     ///   fixed storage price defined in the contract.
-    pub fn transfer(&mut self, owner_id: AccountId, new_owner_id: AccountId, amount: Balance) {
+    pub fn transfer(&mut self, owner_id: AccountId, new_owner_id: AccountId, amount: Balance, message: Vec<u8>, notify: bool) {
         // let initial_storage = env::storage_usage();
         assert!(
             env::is_valid_account_id(new_owner_id.as_bytes()),
@@ -97,13 +92,6 @@ impl Ledger {
 
     fn notify_receiver(&mut self, new_owner_id: AccountId, amount_received: Balance, amount_total: Balance) {
         //token_receiver::process_token_receiver(amount_received, amount_total, [], &new_owner_id, 0, SINGLE_CALL_GAS);
-    }
-
-    fn finalize_tranfer() {
-    }
-
-    fn refund_storage(&self) {
-        // TODO
     }
 }
 
@@ -202,8 +190,8 @@ impl Token {
     }
 
     #[payable]
-    pub fn transfer(&mut self, new_owner_id: AccountId, amount: Balance) {
-        self.ledger.transfer(env::predecessor_account_id(), new_owner_id, amount);
+    pub fn transfer(&mut self, new_owner_id: AccountId, amount: Balance, message: Vec<u8>, notify: bool) {
+        self.ledger.transfer(env::predecessor_account_id(), new_owner_id, amount, message, notify);
     }
 }
 
@@ -268,7 +256,7 @@ mod tests {
         let amount = 5_000u128;
 
         // Context has the sender account as alice
-        contract.transfer(bob(), amount);
+        contract.transfer(bob(), amount, vec![], false);
 
         assert_eq!(contract.get_balance(alice()), total_supply - amount);
         assert_eq!(contract.get_balance(bob()), amount);
@@ -283,7 +271,7 @@ mod tests {
         let amount = 5_000u128;
 
         // Context has the sender account as alice
-        contract.transfer(bob(), amount);
+        contract.transfer(bob(), amount, vec![], false);
 
         assert_eq!(contract.get_balance(alice()), total_supply - amount);
         assert_eq!(contract.get_balance(bob()), amount);
