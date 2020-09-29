@@ -1,6 +1,6 @@
 import { abi } from './abi';
 import { createAccount, setUpTestConnection, deployContract, generateUniqueString } from './test-utils';
-
+const nodeFetch = require('node-fetch');
 
 let near;
 

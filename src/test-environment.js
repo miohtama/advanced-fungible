@@ -13,9 +13,11 @@ class LocalTestEnvironment extends NodeEnvironment {
     }
 
     async setup() {
+
         this.global.nearlib = require('near-api-js');
         this.global.nearAPI = require('near-api-js');
         this.global.window = {};
+        this.global.window.name = "nodejs"; // https://github.com/near/near-api-js/issues/415
         let config = require('./config')('ci');
         this.global.testSettings = this.global.nearConfig = config;
         const now = Date.now();

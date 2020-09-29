@@ -115,10 +115,10 @@ impl Ledger {
     pub symbol: String,
 
     // URL to the human readable page about the token
-    pub webLink: String,
+    pub web_link: String,
 
     // URL to the metadata file with more information about the token, like different icon sets
-    pub metadataLink: String,
+    pub metadata_link: String,
 }
 
 
@@ -165,8 +165,8 @@ impl Token {
         let metadata = Metadata {
             name: String::from(""),
             symbol: String::from(""),
-            webLink: String::from(""),
-            metadataLink: String::from(""),
+            web_link: String::from(""),
+            metadata_link: String::from(""),
         };
 
         let mut token = Self {

@@ -23,7 +23,8 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - run: yarn install --frozen-lockfile
+    - name: Yarn CI installation of NPM packages
+      run: yarn install --frozen-lockfile
     - name: Use Rust with WASM toolchain
       uses: actions-rs/toolchain@v1
       with:
