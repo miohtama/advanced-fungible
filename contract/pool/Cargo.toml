@@ -1,0 +1,16 @@
+[package]
+name = "nep9000_pool"
+version = "0.0.0"
+
+# https://stackoverflow.com/a/53985748/315168
+edition = "2018"
+
+[dependencies]
+near-sdk = "2.0.0"
+nep9000_token = { path = "../token" }
+
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+

@@ -1,0 +1,12 @@
+[package]
+name = "nep9000_token"
+version = "0.1.0"
+authors = ["Mikko Ohtama <mikko@capitalgram.com>"]
+edition = "2018" # https://stackoverflow.com/a/53985748/315168
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+near-sdk = "2.0.0"
+

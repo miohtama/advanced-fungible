@@ -151,6 +151,10 @@ Hostile vector
 
 - Manually specifying gas amounts in contract calls is cumbersome https://github.com/near/core-contracts/blob/master/lockup/src/owner_callbacks.rs#L330
 
+- Missing cross contract interfaces and importing contracts in another source code (Rust)
+
+- ```error: the `#[global_allocator]` in this crate conflicts with global allocator in: nep9000_token```
+
 # Further reading
 
 https://github.com/near/near-sdk-rs/blob/master/examples/fungible-token/src/lib.rs
@@ -162,3 +166,5 @@ https://stevedonovan.github.io/rust-gentle-intro/object-orientation.html
 https://github.com/near-examples/simulation-testing
 
 https://github.com/near-examples/guest-book/tree/master
+
+https://github.com/smartcontractkit/near-protocol-contracts
