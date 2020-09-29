@@ -1,24 +1,27 @@
 import { abi } from './abi';
 import { createAccount, setUpTestConnection, deployContract } from './test-utils';
 
+// import fetch
+global.fetch = require("node-fetch");
+
 let near;
 
 // Contract accounts
 let poolContract, tokenContract, anotherTokenContract;
 
 // Normal user accounts
-let vitalik, gavin;
+let vitalik, gavin, deployer;
 
 beforeAll(async function () {
 
-    near = setUpTestConnection();
+    near = await setUpTestConnection();
+    vitalik = await createAccount(near);
+    gavin = await createAccount(near);
+    deployer = await createAccount(near);
 
-    vitalik = createAccount(near);
-    gavin = createAccount(near);
-
-    poolContract = deployContract('pool', 'pool', abi.pool);
-    tokenContract = deployContract('tokenContract', 'token', abi.token);
-    anotherTokenContract = deployContract('anotherTokenContract', 'token', abi.token);
+    poolContract = await deployContract(deployer, 'pool', 'pool', abi.pool);
+    tokenContract = await deployContract(deployer, 'tokenContract', 'token', abi.token);
+    anotherTokenContract = await deployContract(deployer, 'anotherTokenContract', 'token', abi.token);
 
 });
 

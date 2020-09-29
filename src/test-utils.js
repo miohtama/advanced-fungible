@@ -5,8 +5,6 @@ const assert = require('assert');
 
 const networkId = 'unittest';
 
-const HELLO_WASM_PATH = process.env.HELLO_WASM_PATH || 'node_modules/near-hello/dist/main.wasm';
-const HELLO_WASM_BALANCE = new BN('10000000000000000000000000');
 
 async function setUpTestConnection() {
     const keyStore = new nearApi.keyStores.InMemoryKeyStore();
@@ -15,6 +13,7 @@ async function setUpTestConnection() {
         deps: { keyStore },
     });
 
+    // I have no clue what this is because it was commented in the original source code.
     if (config.masterAccount) {
         await keyStore.setKey(networkId, config.masterAccount, nearApi.utils.KeyPair.fromString('ed25519:2wyRcSwSuHtRVmkMCGjPwnzZmQLeXLzLLyED1NDMt4BjnKgQL6tF85yBx6Jr26D2dUNeC716RBoTxntVHsegogYw'));
     }
@@ -68,7 +67,5 @@ module.exports = {
     createAccount,
     deployContract,
     sleep,
-    ensureDir,
-    HELLO_WASM_PATH,
-    HELLO_WASM_BALANCE,
+    ensureDir
 };
