@@ -24,16 +24,17 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - run: yarn install --frozen-lockfile
-    - name: Use Rust
+    - name: Use Rust with WASM toolchain
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
         target: wasm32-unknown-unknown
-    - name: Cargo install
+    - name: Cargo build
       uses: actions-rs/cargo@v1
       with:
         command: build
         args: --release --target wasm32-unknown-unknown
-    - name: Js tests
+        working-directory: ./contract
+    - name: JS tests
       run: yarn jest
 
