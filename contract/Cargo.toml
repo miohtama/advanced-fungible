@@ -1,3 +1,5 @@
+edition = "2018" # https://stackoverflow.com/a/53985748/315168
+
 [profile.release]
 codegen-units = 1
 # Tell `rustc` to optimize for small code size.

@@ -1,7 +1,7 @@
 const fs = require('fs').promises;
 const BN = require('bn.js');
-
-const nearApi = require('../lib/index');
+const nearApi = require('near-api-js');
+const assert = require('assert');
 
 const networkId = 'unittest';
 
@@ -28,6 +28,9 @@ function generateUniqueString(prefix) {
 }
 
 async function createAccount(near) {
+    assert(near);
+    assert(near.connection);
+    assert(near.connection.signer);
     const newAccountName = generateUniqueString('test');
     const newPublicKey = await near.connection.signer.createKey(newAccountName, networkId);
     await near.createAccount(newAccountName, newPublicKey);
@@ -35,14 +38,13 @@ async function createAccount(near) {
     return account;
 }
 
-async function deployContract(workingAccount, contractId, path) {
+async function deployContract(workingAccount, contractId, contractName, abi, constructorArgs) {
     const newPublicKey = await workingAccount.connection.signer.createKey(contractId, networkId);
+    const path = `../contract/target/wasm32-unknown-unknown/release/nep9000_${contractName}.wasm`;
     const data = [...(await fs.readFile(path))];
     await workingAccount.createAndDeployContract(contractId, newPublicKey, data, HELLO_WASM_BALANCE);
-    return new nearApi.Contract(workingAccount, contractId, {
-        viewMethods: ['getValue', 'getLastResult'],
-        changeMethods: ['setValue', 'callPromise']
-    });
+    const contract = nearApi.Contract(workingAccount, contractId, { abi });
+    return contract;
 }
 
 function sleep(time) {
