@@ -77,7 +77,7 @@ Run our own tests:
 ```sh
 yarn install
 yarn build:contract
-
+npx jest
 ```
 
 ##
