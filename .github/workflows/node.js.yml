@@ -28,6 +28,7 @@ jobs:
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
+        target: wasm32-unknown-unknown
     - name: Cargo install
       uses: actions-rs/cargo@v1
       with:
