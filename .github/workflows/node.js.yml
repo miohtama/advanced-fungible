@@ -30,11 +30,9 @@ jobs:
         toolchain: stable
         target: wasm32-unknown-unknown
     - name: Cargo build
-      uses: actions-rs/cargo@v1
-      with:
-        command: build
-        args: --release --target wasm32-unknown-unknown
-        working-directory: ./contract
+#      uses: actions-rs/cargo@v1
+      run: cargo build --release --target wasm32-unknown-unknown
+      working-directory: ./contract
     - name: JS tests
       run: yarn jest
 
