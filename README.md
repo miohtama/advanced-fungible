@@ -59,6 +59,8 @@ back the development.
   Maybe this was simplification or oversight in the original design decisions, but means anything NEAR
   is not useful for any serious smart contract development.
 
+- These is zero information how to set up repeatable local net for integration testing
+
 - `create-near-app` is hardcoded for a single contract, both JavaScript codebase and Rust codebase.
 
 - Rust unit tests cannot test contract interactions.

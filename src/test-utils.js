@@ -48,7 +48,7 @@ async function deployContract(workingAccount, contractId, contractName, abi) {
     path = resolve(path);
     const data = [...(await fs.readFile(path))];
 
-    assert(data.length < 200000, "That's one massive contract");
+    assert(data.length < 200000, `That's one massive contract ${data.length} bytes`);
 
     await workingAccount.createAndDeployContract(contractId, newPublicKey, data, CONTRACT_BALANCE);
     const contract = new nearApi.Contract(workingAccount, contractId, abi);
