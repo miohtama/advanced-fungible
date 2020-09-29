@@ -1,23 +1,28 @@
 Advanced Fungible Token for NEAR blockchain.
 
-Part of Rainbow hackathon: https://gitcoin.co/hackathon/hack-the-rainbow/projects/1497/Advanced-Fungible-Token-Standard-NEP-9000
+![badge](https://github.com/miohtama/advanced-fungible-token/workflows/Build%20contracts%20and%20execute%20JS%20tests/badge.svg)
 
-## Overview
+# Overview
 
 Open source contracts for a golden token standard for NEAR protocol
 
+## Benefits
+
 * Slick user and developer experience with single transaction `send()` vs. `approve()` and `transferFrom()`
 
-* Provide security primitives to safely work with tokens on the NEAR sharded blockchain and promises
+* Security primitives to safely interact with tokens on the NEAR sharded blockchain and promises
 
 * A lot of code examples
 
+Part of Rainbow hackathon: https://gitcoin.co/hackathon/hack-the-rainbow/projects/1497/Advanced-Fungible-Token-Standard-NEP-9000
+
 ## How does it work
 
+TODO
 
 ## Development
 
-# Run
+Below is how to build and run tests.
 
 ```sh
 

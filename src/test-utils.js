@@ -3,6 +3,8 @@ const BN = require('bn.js');
 const nearApi = require('near-api-js');
 const assert = require('assert');
 const { resolve } = require("path");
+
+
 const networkId = 'unittest';
 
 // TODO: Cargo cult copying because I have not idea what should be there

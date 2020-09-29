@@ -46,7 +46,7 @@
     "setupFiles": [
       "<rootDir>/src/jest.init.js"
     ],
-    "testEnvironment": "near-cli/test_environment",
+    "testEnvironment": "<rootDir>/src/test-environment.js",
     "testPathIgnorePatterns": [
       "<rootDir>/assembly/",
       "<rootDir>/node_modules/"
