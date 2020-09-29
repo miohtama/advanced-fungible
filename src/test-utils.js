@@ -2,9 +2,12 @@ const fs = require('fs').promises;
 const BN = require('bn.js');
 const nearApi = require('near-api-js');
 const assert = require('assert');
-
+const { resolve } = require("path");
 const networkId = 'unittest';
 
+// TODO: Cargo cult copying because I have not idea what should be there
+// Some deployments take more gas. If the deployment fails just keep increasing this number.
+const CONTRACT_BALANCE = new BN('50000000000000000000000000');
 
 async function setUpTestConnection() {
     const keyStore = new nearApi.keyStores.InMemoryKeyStore();
@@ -13,7 +16,7 @@ async function setUpTestConnection() {
         deps: { keyStore },
     });
 
-    // I have no clue what this is because it was commented in the original source code.
+    // TODO: I have no clue what this is because it was commented in the original source code.
     if (config.masterAccount) {
         await keyStore.setKey(networkId, config.masterAccount, nearApi.utils.KeyPair.fromString('ed25519:2wyRcSwSuHtRVmkMCGjPwnzZmQLeXLzLLyED1NDMt4BjnKgQL6tF85yBx6Jr26D2dUNeC716RBoTxntVHsegogYw'));
     }
@@ -37,12 +40,14 @@ async function createAccount(near) {
     return account;
 }
 
-async function deployContract(workingAccount, contractId, contractName, abi, constructorArgs) {
+async function deployContract(workingAccount, contractId, contractName, abi) {
     const newPublicKey = await workingAccount.connection.signer.createKey(contractId, networkId);
-    const path = `../contract/target/wasm32-unknown-unknown/release/nep9000_${contractName}.wasm`;
+    let path = `${__dirname}/../contract/target/wasm32-unknown-unknown/release/nep9000_${contractName}.wasm`;
+    path = resolve(path);
     const data = [...(await fs.readFile(path))];
-    await workingAccount.createAndDeployContract(contractId, newPublicKey, data, HELLO_WASM_BALANCE);
-    const contract = nearApi.Contract(workingAccount, contractId, { abi });
+    await workingAccount.createAndDeployContract(contractId, newPublicKey, data, CONTRACT_BALANCE);
+    const contract = new nearApi.Contract(workingAccount, contractId, abi);
+    contract.contractId = contractId;
     return contract;
 }
 

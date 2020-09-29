@@ -4,7 +4,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "npm run build:contract && npm run build:web",
-    "build:contract": "node ./contract/build",
+    "build:contract": "( cd contract && cargo build --target wasm32-unknown-unknown --release )",
     "build:web": "parcel build src/index.html --public-url ./",
     "dev:deploy:contract": "near dev-deploy",
     "deploy:contract": "near deploy",
@@ -14,7 +14,8 @@
     "start": "echo The app is starting! It will automatically open in your browser when ready && env-cmd -f ./neardev/dev-account.env parcel src/index.html --open",
     "dev": "nodemon --watch assembly -e ts --exec \"npm run start\"",
     "test": "(cd contract && cargo test -- --nocapture && cd ..) && npm run build:contract && jest test --runInBand",
-    "jest": "jest test --runInBand"
+    "jest": "jest test --runInBand",
+    "ci": "npm run build:contract && npm run test"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.9.5",
@@ -32,6 +33,7 @@
   },
   "dependencies": {
     "near-api-js": "^0.29.0",
+    "near-hello": "^0.5.1",
     "node-fetch": "^2.6.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
@@ -49,7 +51,8 @@
     "testPathIgnorePatterns": [
       "<rootDir>/assembly/",
       "<rootDir>/node_modules/"
-    ]
+    ],
+    "testTimeout": 15000
   },
   "browserslist": {
     "production": [

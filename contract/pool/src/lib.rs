@@ -1,10 +1,14 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+
 use near_sdk::borsh::{ self, BorshDeserialize, BorshSerialize};
 use near_sdk::{ env, near_bindgen, AccountId, Balance, Promise };
 
-use nep9000_token::receiver::{ Receiver };
+// use nep9000_token::receiver::{ Receiver };
 
 // ##[global_allocator]
 // static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+
 
 
 /*
@@ -36,7 +40,7 @@ impl Default for BurnerPool {
  *
  */
 #[near_bindgen]
-impl Receiver for BurnerPool {
+impl BurnerPool {
 
     fn on_token_received(&mut self, sender_id: AccountId, amount: Balance, _message: Vec<u8>) -> Option<String> {
         assert!(sender_id == self.token_id, "Pool can only receive the named token");
@@ -51,9 +55,14 @@ impl Receiver for BurnerPool {
 impl BurnerPool {
 
     #[init]
-    fn new(token_id: AccountId) -> Self {
+    pub fn new(token_id: AccountId) -> Self {
 
         assert!(!env::state_exists(), "Already initialized");
+
+        assert!(
+            env::is_valid_account_id(token_id.as_bytes()),
+            format!("{} account ID is invalid", token_id)
+        );
 
         let pool = Self {
             token_id: token_id,
@@ -63,7 +72,7 @@ impl BurnerPool {
         return pool;
     }
 
-    fn get_total_received(&mut self) -> Balance {
+    pub fn get_total_received(&mut self) -> Balance {
         return self.total_received;
     }
 }

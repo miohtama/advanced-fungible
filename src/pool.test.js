@@ -1,30 +1,41 @@
 import { abi } from './abi';
-import { createAccount, setUpTestConnection, deployContract } from './test-utils';
+import { createAccount, setUpTestConnection, deployContract, generateUniqueString } from './test-utils';
 
-// import fetch
-global.fetch = require("node-fetch");
 
 let near;
 
-// Contract accounts
-let poolContract, tokenContract, anotherTokenContract;
-
 // Normal user accounts
-let vitalik, gavin, deployer;
+let deployer;
 
 beforeAll(async function () {
-
     near = await setUpTestConnection();
-    vitalik = await createAccount(near);
-    gavin = await createAccount(near);
     deployer = await createAccount(near);
-
-    poolContract = await deployContract(deployer, 'pool', 'pool', abi.pool);
-    tokenContract = await deployContract(deployer, 'tokenContract', 'token', abi.token);
-    anotherTokenContract = await deployContract(deployer, 'anotherTokenContract', 'token', abi.token);
-
 });
 
-test('Create pool', async () => {
+test('Deploy pool contract', async () => {
+    const poolContract = await deployContract(deployer, generateUniqueString('cnt'), 'pool', abi.pool);
 
+    let action = await deployer.functionCall(
+        poolContract.contractId,
+        "new",
+        {
+            // Can be any account in this test
+            token_id: deployer.accountId,
+        }
+    );
+    expect(action.status?.SuccessValue).toBe('');
+
+})
+
+
+test('Cannot initialize pool twice', async () => {
+    const poolContract = await deployContract(deployer, generateUniqueString('cnt'), 'pool', abi.pool);
+    await poolContract.new({ token_id: deployer.accountId });
+    // second init
+    try {
+        await poolContract.new({ token_id: deployer.accountId });
+        throw new Error('Not reachable');
+    } catch(e) {
+        expect(e.panic_msg).toMatch(/Already initialized/);
+    }
 })

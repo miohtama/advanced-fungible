@@ -286,7 +286,6 @@ name = "nep9000_pool"
 version = "0.0.0"
 dependencies = [
  "near-sdk",
- "nep9000_token",
 ]
 
 [[package]]

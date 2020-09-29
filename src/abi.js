@@ -2,7 +2,7 @@
 export const abi = {
     pool: {
         viewMethods: ['get_total_received'],
-        changeMethods: ['setValue', 'callPromise']
+        changeMethods: ['new', 'on_token_received']
     },
 
     token: {
