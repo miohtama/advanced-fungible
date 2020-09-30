@@ -12,7 +12,17 @@ Open source contracts for a golden token standard for NEAR protocol
 
 # Rainbow hackathon presention
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/iOBxgXtoOJ8" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+[![](http://img.youtube.com/vi/iOBxgXtoOJ8/0.jpg)](http://www.youtube.com/watch?v=iOBxgXtoOJ8 "Rainbow Hackathon presentation")
+
+[Watch 2 minutes presentatoin on YouTube](http://www.youtube.com/watch?v=iOBxgXtoOJ8)
+
+# Walkthrough
+
+![1](./presentation/1.png)
+
+![2](./presentation/2.png)
+
+![3](./presentation/3.png)
 
 # Benefits
 
@@ -40,14 +50,6 @@ locks up any tokens that are "in transit" so that they cannot be double spent,
 or subject to anything equal to Ethereum re-entrancy attack.
 In the case the promise chain fails, any locked up transactions
 are rolled back and balances restored to the point before the promise chain was started.
-
-# Walkthrough
-
-![1](./presentation/1.png)
-
-![2](./presentation/2.png)
-
-![3](./presentation/3.png)
 
 # Technology
 
