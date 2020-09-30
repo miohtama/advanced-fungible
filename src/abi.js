@@ -6,6 +6,7 @@ export const abi = {
     },
 
     token: {
-        changeMethods: ['send']
+        viewMethods: ['get_total_supply', 'get_balance'],
+        changeMethods: ['new', 'send']
     }
 };

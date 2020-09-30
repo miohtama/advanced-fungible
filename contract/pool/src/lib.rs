@@ -13,6 +13,10 @@ use near_sdk::{ env, near_bindgen, AccountId, Balance, Promise };
 
 /*
  * A simple smart contract that can receive token transfers.
+ *
+ * It's called burner pool, because it is one way pool, so
+ * mostly useful for testing.
+ *
  */
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize)]

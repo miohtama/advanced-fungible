@@ -41,6 +41,14 @@ yarn install
 yarn jest
 ```
 
+### Running a single test
+
+Example
+
+```sh
+npx jest src/token.test.js
+```
+
 ## Visual Studio Code
 
 Install Rust extension. Choose *Start Rust Server* from the command palette.
