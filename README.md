@@ -1,6 +1,6 @@
 Advanced Fungible
 
-**A better token standard for NEAR protocol**
+**Advanced Fungible is a modern, secure and user friendly token standard for NEAR protocol**
 
 ![badge](https://github.com/miohtama/advanced-fungible-token/workflows/Build%20contracts%20and%20execute%20JS%20tests/badge.svg)
 
@@ -10,7 +10,11 @@ Advanced Fungible
 
 Open source contracts for a golden token standard for NEAR protocol
 
-## Benefits
+# Rainbow hackathon presention
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/iOBxgXtoOJ8" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+# Benefits
 
 ![explanation](./explanation.png)
 
@@ -37,7 +41,15 @@ or subject to anything equal to Ethereum re-entrancy attack.
 In the case the promise chain fails, any locked up transactions
 are rolled back and balances restored to the point before the promise chain was started.
 
-## Technology
+# Walkthrough
+
+![1](./presentation/1.png)
+
+![2](./presentation/2.png)
+
+![3](./presentation/3.png)
+
+# Technology
 
 * Smart contracts written in Rust
 

@@ -17,7 +17,7 @@ use crate::utils::{ is_promise_success };
 const SINGLE_CALL_GAS: u64 = 200000000000000;
 
 /**
- * A helper class to implement rollbackable promise transactions.
+ * A balance ledger that keeps track of rollbackable promise transactions.
  */
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Ledger {
