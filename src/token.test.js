@@ -41,7 +41,8 @@ test('Deploy token contract', async () => {
 
 });
 
-test('Can transfer between accounts', async () => {
+
+test('Can send between accounts', async () => {
 
     const tokenContract = await deployContract(deployer, generateUniqueString('cnt'), 'token', abi.token);
 
@@ -51,19 +52,18 @@ test('Can transfer between accounts', async () => {
         total_supply: 10000,
     });
 
-    // Vital calls token.send()
+    // Vitalik calls token.send()
     const result = await vitalik.functionCall(
         tokenContract.contractId,
         "send",
         {
             new_owner_id: gavin.accountId,
             amount: 800,
-            message: new Uint8Array(0),
+            message: [],
             notify: false
         }
     )
 
-    console.log(result);
     expect(result.status?.SuccessValue).toBe('');
 
     // The initial owner has everything
@@ -76,4 +76,32 @@ test('Can transfer between accounts', async () => {
     // No balance
     const balance3 = await tokenContract.get_balance({ owner_id: deployer.accountId });
     expect(balance3).toEqual(0);
+});
+
+
+test('Cannot send too much', async () => {
+
+    const tokenContract = await deployContract(deployer, generateUniqueString('cnt'), 'token', abi.token);
+
+    await tokenContract.new({
+        // Vitalik owns us
+        owner_id: vitalik.accountId,
+        total_supply: 10000,
+    });
+
+    try {
+        await vitalik.functionCall(
+            tokenContract.contractId,
+            "send",
+            {
+                new_owner_id: gavin.accountId,
+                amount: 11000,
+                message: [],
+                notify: false
+            }
+        )
+        throw new Error("Not reached");
+    } catch(e) {
+        expect(e.panic_msg).toMatch(/Not enough balance/);
+    }
 });
