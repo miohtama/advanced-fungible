@@ -12,6 +12,8 @@ Open source contracts for a golden token standard for NEAR protocol
 
 ## Benefits
 
+![explanation](./explanation.png)
+
 * Slick user and developer experience with single transaction `send()` vs. `approve()` and `transferFrom()`
 
 * Security primitives to safely interact with tokens on the NEAR sharded blockchain and promises
