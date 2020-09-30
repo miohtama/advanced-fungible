@@ -44,11 +44,11 @@ Part of Rainbow hackathon: https://gitcoin.co/hackathon/hack-the-rainbow/project
 
 ## How does it work
 
-There are two main code artifacts
+There are two main functions
 
 - `Token.send()` for sending tokens to users and smart contracts
 
-- `Receiver.on_received()` for smart contracts to take any action on an incoming token transfer
+- `Receiver.on_received()` for receiving tokens on smart contracts and taking any action on an incoming transfer
 
 Each cross-shard transaction in NEAR is a promise. When multiple smart contracts
 interact with each other, promises are chained. The ledger
