@@ -3,6 +3,8 @@ const BN = require('bn.js');
 const nearApi = require('near-api-js');
 const assert = require('assert');
 const { resolve } = require("path");
+
+
 const networkId = 'unittest';
 
 // TODO: Cargo cult copying because I have not idea what should be there
@@ -45,6 +47,9 @@ async function deployContract(workingAccount, contractId, contractName, abi) {
     let path = `${__dirname}/../contract/target/wasm32-unknown-unknown/release/nep9000_${contractName}.wasm`;
     path = resolve(path);
     const data = [...(await fs.readFile(path))];
+
+    assert(data.length < 200000, `That's one massive contract ${data.length} bytes`);
+
     await workingAccount.createAndDeployContract(contractId, newPublicKey, data, CONTRACT_BALANCE);
     const contract = new nearApi.Contract(workingAccount, contractId, abi);
     contract.contractId = contractId;

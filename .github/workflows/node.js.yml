@@ -1,7 +1,6 @@
-# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+# Uses some magical shared CI near chain
 
-name: Node.js CI
+name: Build contracts and execute JS tests
 
 on:
   push:
@@ -24,6 +23,15 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - run: yarn ci
-    - run: yarn test-and-buikd
+    - name: Yarn CI installation of NPM packages
+      run: yarn install --frozen-lockfile
+    - name: Use Rust with WASM toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        target: wasm32-unknown-unknown
+    - name: Cargo build
+      run: cd contract && cargo build --release --target wasm32-unknown-unknown
+    - name: JS tests
+      run: yarn jest
 

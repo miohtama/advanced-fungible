@@ -1,6 +1,6 @@
 import { abi } from './abi';
 import { createAccount, setUpTestConnection, deployContract, generateUniqueString } from './test-utils';
-
+const nodeFetch = require('node-fetch');
 
 let near;
 
@@ -25,7 +25,9 @@ test('Deploy pool contract', async () => {
     );
     expect(action.status?.SuccessValue).toBe('');
 
-})
+    const received = await poolContract.get_total_received();
+    expect(received).toEqual(0);
+});
 
 
 test('Cannot initialize pool twice', async () => {
@@ -38,4 +40,4 @@ test('Cannot initialize pool twice', async () => {
     } catch(e) {
         expect(e.panic_msg).toMatch(/Already initialized/);
     }
-})
+});

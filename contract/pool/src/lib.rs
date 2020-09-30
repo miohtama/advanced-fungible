@@ -72,7 +72,7 @@ impl BurnerPool {
         return pool;
     }
 
-    pub fn get_total_received(&mut self) -> Balance {
+    pub fn get_total_received(self) -> Balance {
         return self.total_received;
     }
 }

@@ -1,7 +1,7 @@
 {
   "name": "nep-9000",
   "version": "0.1.0",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "build": "npm run build:contract && npm run build:web",
     "build:contract": "( cd contract && cargo build --target wasm32-unknown-unknown --release )",
@@ -13,9 +13,8 @@
     "prestart": "npm run build:contract && npm run dev:deploy:contract",
     "start": "echo The app is starting! It will automatically open in your browser when ready && env-cmd -f ./neardev/dev-account.env parcel src/index.html --open",
     "dev": "nodemon --watch assembly -e ts --exec \"npm run start\"",
-    "test": "(cd contract && cargo test -- --nocapture && cd ..) && npm run build:contract && jest test --runInBand",
     "jest": "jest test --runInBand",
-    "ci": "npm run build:contract && npm run test"
+    "build-and-test": "npm run build:contract && npm run jest"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.9.5",
@@ -47,7 +46,7 @@
     "setupFiles": [
       "<rootDir>/src/jest.init.js"
     ],
-    "testEnvironment": "near-cli/test_environment",
+    "testEnvironment": "<rootDir>/src/test-environment.js",
     "testPathIgnorePatterns": [
       "<rootDir>/assembly/",
       "<rootDir>/node_modules/"
