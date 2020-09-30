@@ -193,7 +193,12 @@ impl Token {
     }
 
     #[payable]
-    pub fn transfer(&mut self, new_owner_id: AccountId, amount: Balance, message: Vec<u8>, notify: bool) {
+    pub fn process_bytes(&mut self, message: Vec<u8>) {
+        assert!(message.len() > 0, "Must contain input");
+    }
+
+    #[payable]
+    pub fn send(&mut self, new_owner_id: AccountId, amount: Balance, message: Vec<u8>, notify: bool) {
         self.ledger.transfer(env::predecessor_account_id(), new_owner_id, amount, message, notify);
     }
 }

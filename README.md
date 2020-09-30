@@ -12,6 +12,8 @@ Open source contracts for a golden token standard for NEAR protocol
 
 * Security primitives to safely interact with tokens on the NEAR sharded blockchain and promises
 
+* Interfaces has been optimised to reduce the amount of calls between shards
+
 * A lot of code examples
 
 Part of Rainbow hackathon: https://gitcoin.co/hackathon/hack-the-rainbow/projects/1497/Advanced-Fungible-Token-Standard-NEP-9000

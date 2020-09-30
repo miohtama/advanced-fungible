@@ -42,4 +42,38 @@ test('Deploy token contract', async () => {
 });
 
 test('Can transfer between accounts', async () => {
+
+    const tokenContract = await deployContract(deployer, generateUniqueString('cnt'), 'token', abi.token);
+
+    await tokenContract.new({
+        // Vitalik owns us
+        owner_id: vitalik.accountId,
+        total_supply: 10000,
+    });
+
+    // Vital calls token.send()
+    const result = await vitalik.functionCall(
+        tokenContract.contractId,
+        "send",
+        {
+            new_owner_id: gavin.accountId,
+            amount: 800,
+            message: new Uint8Array(0),
+            notify: false
+        }
+    )
+
+    console.log(result);
+    expect(result.status?.SuccessValue).toBe('');
+
+    // The initial owner has everything
+    const balance = await tokenContract.get_balance({ owner_id: vitalik.accountId });
+    expect(balance).toEqual(9200);
+
+    const balance2 = await tokenContract.get_balance({ owner_id: gavin.accountId });
+    expect(balance2).toEqual(800);
+
+    // No balance
+    const balance3 = await tokenContract.get_balance({ owner_id: deployer.accountId });
+    expect(balance3).toEqual(0);
 });
