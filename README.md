@@ -1,5 +1,3 @@
-Advanced Fungible
-
 **Advanced Fungible is a modern, secure and user friendly token standard for NEAR protocol**
 
 ![badge](https://github.com/miohtama/advanced-fungible-token/workflows/Build%20contracts%20and%20execute%20JS%20tests/badge.svg)
