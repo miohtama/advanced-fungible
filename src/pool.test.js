@@ -1,6 +1,6 @@
 import { abi } from './abi';
 import { createAccount, setUpTestConnection, deployContract, generateUniqueString } from './test-utils';
-const nodeFetch = require('node-fetch');
+
 
 let near;
 
@@ -10,7 +10,7 @@ let deployer, vitalik;
 beforeAll(async function () {
     near = await setUpTestConnection();
     deployer = await createAccount(near);
-    vitalik = await createUser(near);
+    vitalik = await createAccount(near);
 });
 
 test('Deploy pool contract', async () => {
@@ -28,6 +28,9 @@ test('Deploy pool contract', async () => {
 
     const received = await poolContract.get_total_received();
     expect(received).toEqual(0);
+
+    const receiverIface = await poolContract.is_receiver();
+    expect(receiverIface).toEqual(true);
 });
 
 
@@ -62,10 +65,9 @@ test('Pool accounts received tokens', async () => {
         {
             new_owner_id: poolContract.contractId,
             amount: 5000,
-            message: [],
-            notify: false
+            message: []
         }
-    )
+    );
     console.log(result);
 
 });

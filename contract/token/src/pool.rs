@@ -32,13 +32,11 @@ impl Default for BurnerPool {
 #[near_bindgen]
 impl Receiver for BurnerPool {
 
-    fn on_token_received(&mut self, sender_id: AccountId, amount: Balance, _message: Vec<u8>) -> Option<String> {
+    fn on_token_received(&mut self, sender_id: AccountId, amount: Balance, _message: Vec<u8>) -> bool{
         assert!(sender_id == self.token_id, "Pool can only receive the named token");
-
+        env::log(format!("Received {} tokens from {}", amount, sender_id).as_bytes());
         self.total_received += amount;
-
-        // This transfer can never fail
-        return None;
+        return false;
     }
 
 }

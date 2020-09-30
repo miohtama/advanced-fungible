@@ -5,6 +5,7 @@ use near_sdk::wee_alloc;
 
 pub mod token;
 pub mod receiver;
+pub mod utils;
 
 
 #[global_allocator]

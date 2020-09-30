@@ -1,8 +1,11 @@
+import BN from 'bn.js';
 import { abi } from './abi';
 import { createAccount, setUpTestConnection, deployContract, generateUniqueString } from './test-utils';
 
-let near;
+const TRANSFER_GAS = new BN("300000000000000");
 
+// NEAR connection
+let near;
 
 // Normal user accounts
 let deployer, vitalik, gavin;
@@ -30,6 +33,9 @@ test('Deploy token contract', async () => {
     // The initial owner has everything
     const balance = await tokenContract.get_balance({ owner_id: vitalik.accountId });
     expect(balance).toEqual(10000);
+
+    const locked = await tokenContract.get_locked_balance({ owner_id: vitalik.accountId });
+    expect(locked).toEqual(0);
 
     // No balance
     const balance2 = await tokenContract.get_balance({ owner_id: gavin.accountId });
@@ -61,7 +67,8 @@ test('Can send between accounts', async () => {
             amount: 800,
             message: [],
             notify: false
-        }
+        },
+        TRANSFER_GAS,
     )
 
     expect(result.status?.SuccessValue).toBe('');

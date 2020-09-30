@@ -10,11 +10,19 @@ use near_sdk::serde_json::{self, json};
 use near_sdk::borsh::{ self, BorshDeserialize, BorshSerialize};
 use near_sdk::{ env, near_bindgen, ext_contract, AccountId, Balance, Promise, StorageUsage};
 use near_sdk::collections::LookupMap;
+use near_sdk::json_types::U128;
 
 use crate::receiver::{ ext_token_receiver };
+use crate::utils::{ is_promise_success };
+
 
 // Prepaid gas for making a single simple call.
 const SINGLE_CALL_GAS: u64 = 200000000000000;
+
+// Make sure we burn it!
+// const LOT_OF_GAS: u64 = 9200000000000000;
+
+const LOT_OF_GAS: u64 = 300000000000000;
 
 /**
  * Hold accounting data for one token.
@@ -22,12 +30,15 @@ const SINGLE_CALL_GAS: u64 = 200000000000000;
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Ledger {
 
+    // Total balances, including locked, for each user
     pub balances: LookupMap<AccountId, Balance>,
 
     /// Account has a pending promise chain in progress and thus cannot withdraw
+    /// If a promise chain is succesful free the locked balance.
+    /// If a promise chain fails, then the send() gets undoed
     pub locked_balances: LookupMap<AccountId, Balance>,
 
-    /// Total supply of the all token.
+    /// Total supply of the token
     pub total_supply: Balance,
 }
 
@@ -56,17 +67,15 @@ impl Ledger {
         }
     }
 
-    /// Transfers the `amount` of tokens from `owner_id` to the `new_owner_id`.
-    /// Requirements:
-    /// * `amount` should be a positive integer.
-    /// * `owner_id` should have balance on the account greater or equal than the transfer `amount`.
-    /// * If this function is called by an escrow account (`owner_id != predecessor_account_id`),
-    ///   then the allowance of the caller of the function (`predecessor_account_id`) on
-    ///   the account of `owner_id` should be greater or equal than the transfer `amount`.
-    /// * Caller of the method has to attach deposit enough to cover storage difference at the
-    ///   fixed storage price defined in the contract.
+    /**
+     * Send tokens to a new owner.
+     *
+     * message is an optional byte data that is passed to the receiving smart contract.
+     * notify is a flag to tell if we are going to call a smart contract, because this cannot be currently resolved run-time
+     * within NEAR smart contract.
+     */
     pub fn send(&mut self, owner_id: AccountId, new_owner_id: AccountId, amount: Balance, message: Vec<u8>) {
-        // let initial_storage = env::storage_usage();
+
         assert!(
             env::is_valid_account_id(new_owner_id.as_bytes()),
             "New owner's account ID is invalid"
@@ -85,12 +94,12 @@ impl Ledger {
 
         // Checking and updating unlocked balance
         if source_balance < amount {
-            env::panic(b"Not enough balance");
+            env::panic(format!("Not enough balance, need {}, has {}", amount, source_balance).as_bytes());
         }
 
         // Checking and updating unlocked balance
         if source_balance < amount + source_lock {
-            env::panic(b"Cannot send because balance locked in unresolved transactions");
+            env::panic(format!("Cannot send {} tokens, as account has {} and in tx lock {}", amount, source_balance, source_lock).as_bytes());
         }
         self.set_balance(&owner_id, source_balance - amount);
 
@@ -101,8 +110,9 @@ impl Ledger {
 
         // This much of user balance is lockedup in promise chains
         self.set_balance(&new_owner_id, new_target_balance);
+
         let target_lock = self.get_locked_balance(&new_owner_id);
-        // self.locked_balances[new_owner_id].insert(&(target_lock +  amount));
+        self.locked_balances.insert(&new_owner_id, &(target_lock +  amount));
 
         // self.notify_receiver(new_owner_id, amount, new_target_balance, message);
         // ext_token_receiver::is_receiver(&new_owner_id, 0, SINGLE_CALL_GAS).then(
@@ -117,7 +127,7 @@ impl Ledger {
             b"is_receiver",
             &[],
             0,
-            SINGLE_CALL_GAS,
+            SINGLE_CALL_GAS/3,
         );
 
         let promise1 = env::promise_then(
@@ -125,37 +135,61 @@ impl Ledger {
             env::current_account_id(),
             b"handle_receiver",
             json!({
+                "old_owner_id": new_owner_id,
                 "new_owner_id": new_owner_id,
                 "amount_received": amount.to_string(),
                 "amount_total": new_target_balance.to_string(),
-                "message": "",
+                "message": message,
             }).to_string().as_bytes(),
             0,
-            SINGLE_CALL_GAS,
+            SINGLE_CALL_GAS/3,
         );
+
         env::promise_return(promise1);
     }
 
-    /**
-     * Try to call receiving smart contract if it reports it can receive tokens.
-     */
-    pub fn handle_receiver(&mut self, new_owner_id: AccountId, amount_received: Balance, amount_total: Balance, message: Vec<u8>) {
-        // Only callable by self
-        assert_eq!(env::current_account_id(), env::predecessor_account_id());
-        env::log(b"handle_receive reached");
+    /// All promise chains have been successful, release balance from the lock
+    pub fn finalise(&mut self, new_owner_id: AccountId, amount: Balance) {
+        let target_lock = self.get_locked_balance(&new_owner_id);
+
+        assert!(
+            target_lock >= amount,
+            "Locked balance cannot go to negative"
+        );
+
+        let new_amount = target_lock -  amount;
+
+        self.locked_balances.insert(&new_owner_id, &new_amount);
+
     }
 
-    // Smart contract notify succeed, free up any locked balance
-    fn handle_finalize(&mut self, new_owner_id: AccountId, amount_received: Balance, amount_total: Balance) {
-        // Only callable by self
-        assert_eq!(env::current_account_id(), env::predecessor_account_id());
-        env::log(b"finalizing send");
-    }
+    /// Smart contract call failed. We need to roll back the balance update
+    pub fn rollback(&mut self, old_owner_id: AccountId, new_owner_id: AccountId, amount: Balance) {
+        let target_lock = self.get_locked_balance(&new_owner_id);
 
-    // Smart contract call failed, revert the whole transaction
-    fn handle_rollback() {
-    }
+        env::log(format!("Rolling back back send of {} to {}", new_owner_id, amount).as_bytes());
 
+        assert!(
+            target_lock >= amount,
+            "Locked balance cannot go to negative"
+        );
+
+        let new_amount = target_lock -  amount;
+
+        self.locked_balances.insert(&new_owner_id, &new_amount);
+
+        self.balances.insert(&new_owner_id, &new_amount);
+
+        // Rollback
+        let target_balance = self.get_balance(&new_owner_id);
+        let new_target_balance = target_balance - amount;
+        self.set_balance(&new_owner_id, new_target_balance);
+
+        let source_balance = self.get_balance(&old_owner_id);
+        let new_source_balance = source_balance + amount;
+        self.set_balance(&old_owner_id, new_source_balance);
+
+    }
 }
 
 
@@ -218,7 +252,8 @@ impl Token {
 
         // Initialize the ledger with the initial total supply
         let ledger = Ledger {
-            balances: LookupMap::new(b"a".to_vec()),
+            balances: LookupMap::new(b"bal".to_vec()),
+            locked_balances: LookupMap::new(b"lck".to_vec()),
             total_supply,
         };
 
@@ -250,19 +285,87 @@ impl Token {
         self.ledger.get_balance(&owner_id).into()
     }
 
+    /// Returns balance lockedin pending transactions
+    pub fn get_locked_balance(&self, owner_id: AccountId) -> Balance {
+        self.ledger.get_locked_balance(&owner_id).into()
+    }
+
     /// Returns balance of the `owner_id` account.
     pub fn get_name(&self) -> &str {
         return &self.metadata.name;
     }
 
+    /// Send owner's tokens to another person or a smart contract
     #[payable]
-    pub fn process_bytes(&mut self, message: Vec<u8>) {
-        assert!(message.len() > 0, "Must contain input");
+    pub fn send(&mut self, new_owner_id: AccountId, amount: Balance, message: Vec<u8>) {
+        self.ledger.send(env::predecessor_account_id(), new_owner_id, amount, message);
     }
 
-    #[payable]
-    pub fn send(&mut self, new_owner_id: AccountId, amount: Balance, message: Vec<u8>, notify: bool) {
-        self.ledger.transfer(env::predecessor_account_id(), new_owner_id, amount, message, notify);
+    /**
+     * After trying to call receiving smart contract if it reports it can receive tokens.
+     *
+     * We gpt the interface test promise back. If the account was not smart contract, finalise the transaction.
+     * Otherwise trigger the smart contract notifier.
+     */
+    pub fn handle_receiver(&mut self, old_owner_id: AccountId, new_owner_id: AccountId, amount_received: U128, amount_total: U128, message: Vec<u8>) {
+        // Only callable by self
+        assert_eq!(env::current_account_id(), env::predecessor_account_id());
+        env::log(b"handle_receiver reached");
+
+        let amount_received = amount_received.into();
+
+        if is_promise_success() {
+
+            // The send() was destined to a compatible receiver smart contract.
+            // Build another promise that notifies the smart contract
+            // that is has received new tokens.
+
+            let promise0 = env::promise_create(
+                new_owner_id.clone(),
+                b"on_token_received",
+                json!({
+                    "sender_id": old_owner_id,
+                    "amount_received": amount_received,
+                    "amount_total": amount_total,
+                    "message": message,
+                }).to_string().as_bytes(),
+                0,
+                SINGLE_CALL_GAS/8,
+            );
+
+            let promise1 = env::promise_then(
+                promise0,
+                env::current_account_id(),
+                b"handle_token_received",
+                json!({
+                    "old_owner_id": old_owner_id,
+                    "new_owner_id": new_owner_id,
+                    "amount_received": amount_received,
+                }).to_string().as_bytes(),
+                0,
+                SINGLE_CALL_GAS/8,
+            );
+
+            env::promise_return(promise1);
+        } else {
+            // Non-code account
+            // Finalise transaction now.
+            self.ledger.finalise(new_owner_id, amount_received);
+        }
+    }
+
+    /// Smart contract notify succeed, free up any locked balance
+    /// TODO: Add functionality so that the smart contract that received tokens can trigger a new promise chain here
+    fn handle_token_received(&mut self, old_owner_id: AccountId, new_owner_id: AccountId, amount_received: Balance) {
+        // Only callable by self
+        assert_eq!(env::current_account_id(), env::predecessor_account_id());
+        env::log(b"Checking for the need to rollback smart contract transaction");
+
+        if is_promise_success() {
+            self.ledger.finalise(new_owner_id, amount_received);
+        } else {
+            self.ledger.rollback(old_owner_id, new_owner_id, amount_received);
+        }
     }
 }
 
@@ -317,34 +420,4 @@ mod tests {
         assert_eq!(contract.get_balance(bob()), total_supply);
     }
 
-    // Test sending between two normal (no code accounts)
-    #[test]
-    fn test_send_normal() {
-        let context = get_context(alice());
-        testing_env!(context);
-        let total_supply = 1_000_000_000_000_000u128;
-        let mut contract = Token::new(alice(), total_supply.into());
-        let amount = 5_000u128;
-
-        // Context has the sender account as alice
-        contract.transfer(bob(), amount, vec![], false);
-
-        assert_eq!(contract.get_balance(alice()), total_supply - amount);
-        assert_eq!(contract.get_balance(bob()), amount);
-    }
-
-    #[test]
-    fn test_send_smart_contract() {
-        let context = get_context(alice());
-        testing_env!(context);
-        let total_supply = 1_000_000_000_000_000u128;
-        let mut contract = Token::new(alice(), total_supply.into());
-        let amount = 5_000u128;
-
-        // Context has the sender account as alice
-        contract.transfer(bob(), amount, vec![], false);
-
-        assert_eq!(contract.get_balance(alice()), total_supply - amount);
-        assert_eq!(contract.get_balance(bob()), amount);
-    }
 }

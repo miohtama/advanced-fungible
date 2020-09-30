@@ -92,6 +92,8 @@ back the development.
 - Documentation (https://docs.near.org/docs/development/calling-smart-contracts) and code examples (near-js-api) are not cross referenced, making it very hard to navigate and figure out
   up-to-date documentation.
 
+- Need an explorer for CI transcaions
+
 # Further reading
 
 Some other code examples:
@@ -109,3 +111,11 @@ https://github.com/near-examples/simulation-testing
 https://github.com/near-examples/guest-book/tree/master
 
 https://github.com/smartcontractkit/near-protocol-contracts
+
+
+  console.error
+    err {"TxExecutionError":{"InvalidTxError":{"ActionsValidation":{"TotalPrepaidGasExceeded":{"total_prepaid_gas":
+
+    500000000000000
+    300000000000000
+    ,"limit":}}}}}
