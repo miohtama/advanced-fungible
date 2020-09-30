@@ -1,6 +1,10 @@
-Advanced Fungible Token for NEAR blockchain.
+Advanced Fungible
+
+**A better token standard for NEAR protocol**
 
 ![badge](https://github.com/miohtama/advanced-fungible-token/workflows/Build%20contracts%20and%20execute%20JS%20tests/badge.svg)
+
+![logo](./logo.png)
 
 # Overview
 
@@ -12,15 +16,32 @@ Open source contracts for a golden token standard for NEAR protocol
 
 * Security primitives to safely interact with tokens on the NEAR sharded blockchain and promises
 
-* Interfaces has been optimised to reduce the amount of calls between shards
-
 * A lot of code examples
 
 Part of Rainbow hackathon: https://gitcoin.co/hackathon/hack-the-rainbow/projects/1497/Advanced-Fungible-Token-Standard-NEP-9000
 
 ## How does it work
 
-TODO
+There are two main code artifacts
+
+- Token.send() for sending tokens to users and smart contracts
+
+- Receiver.on_received() for smart contracts to take any action on incoming token transfer
+
+Each cross-shard transaction in NEAR is a promise. When multiple smart contracts
+interact with each other, promises are chained. The ledger
+locks up any tokens that are "in transit" so that they cannot be double spent,
+or subject to anything equal to Ethereum re-entrancy attack.
+In the case the promise chain fails, any locked up transactions
+are rolled back and balances restored.
+
+## Technology
+
+* Smart contracts written in Rust
+
+* Automated test suite using JavaScript, jest, near-js-api
+
+* Continuous integration on Github workflows and NEAR testnet
 
 ## Development
 
@@ -115,9 +136,3 @@ https://github.com/near-examples/guest-book/tree/master
 https://github.com/smartcontractkit/near-protocol-contracts
 
 
-  console.error
-    err {"TxExecutionError":{"InvalidTxError":{"ActionsValidation":{"TotalPrepaidGasExceeded":{"total_prepaid_gas":
-
-    500000000000000
-    300000000000000
-    ,"limit":}}}}}
