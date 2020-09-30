@@ -24,6 +24,12 @@ Open source contracts for a golden token standard for NEAR protocol
 
 ![3](./presentation/3.png)
 
+![4](./presentation/4.png)
+
+![5](./presentation/5.png)
+
+![6](./presentation/6.png)
+
 # Benefits
 
 ![explanation](./explanation.png)
