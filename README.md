@@ -92,7 +92,9 @@ back the development.
 - Documentation (https://docs.near.org/docs/development/calling-smart-contracts) and code examples (near-js-api) are not cross referenced, making it very hard to navigate and figure out
   up-to-date documentation.
 
-- Need an explorer for CI transcaions
+- Need an explorer for CI transactions
+
+- Promise parameter serialisation to JSON is painful - amounts
 
 # Further reading
 

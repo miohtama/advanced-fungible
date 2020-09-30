@@ -1,11 +1,8 @@
 /**
- * An advanced fungible token.
+ * An advanced fungible token implementation.
  *
- * https://github.com/near/near-sdk-rs/blob/master/examples/fungible-token/src/lib.rs
  */
 
-
-// To conserve gas, efficient serialization is achieved through Borsh (http://borsh.io/)
 use near_sdk::serde_json::{self, json};
 use near_sdk::borsh::{ self, BorshDeserialize, BorshSerialize};
 use near_sdk::{ env, near_bindgen, ext_contract, AccountId, Balance, Promise, StorageUsage};
@@ -16,16 +13,11 @@ use crate::receiver::{ ext_token_receiver };
 use crate::utils::{ is_promise_success };
 
 
-// Prepaid gas for making a single simple call.
+// TODO: All gas stipends are more or less random - check througfully
 const SINGLE_CALL_GAS: u64 = 200000000000000;
 
-// Make sure we burn it!
-// const LOT_OF_GAS: u64 = 9200000000000000;
-
-const LOT_OF_GAS: u64 = 300000000000000;
-
 /**
- * Hold accounting data for one token.
+ * A helper class to implement rollbackable promise transactions.
  */
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Ledger {
@@ -33,13 +25,18 @@ pub struct Ledger {
     // Total balances, including locked, for each user
     pub balances: LookupMap<AccountId, Balance>,
 
-    /// Account has a pending promise chain in progress and thus cannot withdraw
+    /// Account has a pending promise chain in progress
+    /// and balance locked is this chain cannot be withdawn.
     /// If a promise chain is succesful free the locked balance.
     /// If a promise chain fails, then the send() gets undoed
     pub locked_balances: LookupMap<AccountId, Balance>,
 
     /// Total supply of the token
     pub total_supply: Balance,
+
+    /// Helper counter for testing to diagnose
+    /// how many rollbacks have occured
+    pub rollbacks: u64,
 }
 
 
@@ -114,14 +111,6 @@ impl Ledger {
         let target_lock = self.get_locked_balance(&new_owner_id);
         self.locked_balances.insert(&new_owner_id, &(target_lock +  amount));
 
-        // self.notify_receiver(new_owner_id, amount, new_target_balance, message);
-        // ext_token_receiver::is_receiver(&new_owner_id, 0, SINGLE_CALL_GAS).then(
-        //     self.handle_receiver(new_owner_id: amount_received. amount_total, message)
-        // );
-
-        // ext_status_message::set_status(message, &account_id, 0, SINGLE_CALL_GAS).then(
-        //    notify_receiver
-        //)
         let promise0 = env::promise_create(
             new_owner_id.clone(),
             b"is_receiver",
@@ -135,7 +124,7 @@ impl Ledger {
             env::current_account_id(),
             b"handle_receiver",
             json!({
-                "old_owner_id": new_owner_id,
+                "old_owner_id": owner_id,
                 "new_owner_id": new_owner_id,
                 "amount_received": amount.to_string(),
                 "amount_total": new_target_balance.to_string(),
@@ -149,6 +138,7 @@ impl Ledger {
     }
 
     /// All promise chains have been successful, release balance from the lock
+    /// and consider the promise chain final.
     pub fn finalise(&mut self, new_owner_id: AccountId, amount: Balance) {
         let target_lock = self.get_locked_balance(&new_owner_id);
 
@@ -166,29 +156,34 @@ impl Ledger {
     /// Smart contract call failed. We need to roll back the balance update
     pub fn rollback(&mut self, old_owner_id: AccountId, new_owner_id: AccountId, amount: Balance) {
         let target_lock = self.get_locked_balance(&new_owner_id);
+        let target_balance = self.get_balance(&new_owner_id);
+        let source_balance = self.get_balance(&old_owner_id);
 
-        env::log(format!("Rolling back back send of {} to {}", new_owner_id, amount).as_bytes());
+        env::log(format!("Rolling back back send of {}, from {} to {}, currently locked {}", amount, old_owner_id, new_owner_id, target_lock).as_bytes());
+        env::log(format!("New owner balance {}, old owner balance {}", target_balance, source_balance).as_bytes());
 
         assert!(
             target_lock >= amount,
             "Locked balance cannot go to negative"
         );
 
-        let new_amount = target_lock -  amount;
-
+        // Roll back lock
+        let new_amount = target_lock - amount;
         self.locked_balances.insert(&new_owner_id, &new_amount);
-
         self.balances.insert(&new_owner_id, &new_amount);
 
-        // Rollback
-        let target_balance = self.get_balance(&new_owner_id);
+        // Rollback new owner
         let new_target_balance = target_balance - amount;
         self.set_balance(&new_owner_id, new_target_balance);
 
-        let source_balance = self.get_balance(&old_owner_id);
+        // Rollback old owner
         let new_source_balance = source_balance + amount;
         self.set_balance(&old_owner_id, new_source_balance);
 
+        let target_balance = self.get_balance(&new_owner_id);
+        let source_balance = self.get_balance(&old_owner_id);
+
+        self.rollbacks += 1;
     }
 }
 
@@ -255,6 +250,7 @@ impl Token {
             balances: LookupMap::new(b"bal".to_vec()),
             locked_balances: LookupMap::new(b"lck".to_vec()),
             total_supply,
+            rollbacks: 0,
         };
 
         // Currently the constructor does not support passing of metadata.
@@ -290,6 +286,11 @@ impl Token {
         self.ledger.get_locked_balance(&owner_id).into()
     }
 
+    //// How many rollbacks we have had
+    pub fn get_rollback_count(&self) -> u64 {
+        self.ledger.rollbacks
+    }
+
     /// Returns balance of the `owner_id` account.
     pub fn get_name(&self) -> &str {
         return &self.metadata.name;
@@ -312,13 +313,16 @@ impl Token {
         assert_eq!(env::current_account_id(), env::predecessor_account_id());
         env::log(b"handle_receiver reached");
 
-        let amount_received = amount_received.into();
+        let uint_amount_received: u128 = amount_received.into();
+        let uint_amount_total: u128 = amount_total.into();
 
         if is_promise_success() {
 
             // The send() was destined to a compatible receiver smart contract.
             // Build another promise that notifies the smart contract
             // that is has received new tokens.
+
+            env::log(b"Constructing smart contract notifier promise");
 
             let promise0 = env::promise_create(
                 new_owner_id.clone(),
@@ -330,9 +334,11 @@ impl Token {
                     "message": message,
                 }).to_string().as_bytes(),
                 0,
-                SINGLE_CALL_GAS/8,
+                SINGLE_CALL_GAS/10,
             );
 
+            // Construct the promise that calls back the
+            // token contract to finalise the transaction
             let promise1 = env::promise_then(
                 promise0,
                 env::current_account_id(),
@@ -343,24 +349,27 @@ impl Token {
                     "amount_received": amount_received,
                 }).to_string().as_bytes(),
                 0,
-                SINGLE_CALL_GAS/8,
+                SINGLE_CALL_GAS/10,
             );
 
             env::promise_return(promise1);
         } else {
             // Non-code account
             // Finalise transaction now.
-            self.ledger.finalise(new_owner_id, amount_received);
+            self.ledger.finalise(new_owner_id, uint_amount_received);
         }
     }
 
     /// Smart contract notify succeed, free up any locked balance
     /// TODO: Add functionality so that the smart contract that received tokens can trigger a new promise chain here
-    fn handle_token_received(&mut self, old_owner_id: AccountId, new_owner_id: AccountId, amount_received: Balance) {
+    pub fn handle_token_received(&mut self, old_owner_id: AccountId, new_owner_id: AccountId, amount_received: U128) {
         // Only callable by self
         assert_eq!(env::current_account_id(), env::predecessor_account_id());
         env::log(b"Checking for the need to rollback smart contract transaction");
 
+        let amount_received: u128 = amount_received.into();
+
+        // TODO: Have some nice error code logic here
         if is_promise_success() {
             self.ledger.finalise(new_owner_id, amount_received);
         } else {

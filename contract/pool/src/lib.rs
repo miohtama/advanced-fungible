@@ -1,6 +1,8 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
+#![allow(unused_variables)]
 
+use near_sdk::json_types::U128;
 use near_sdk::borsh::{ self, BorshDeserialize, BorshSerialize};
 use near_sdk::{ env, near_bindgen, AccountId, Balance, Promise };
 
@@ -46,16 +48,29 @@ impl Default for BurnerPool {
 #[near_bindgen]
 impl BurnerPool {
 
+    // This is called by the token contract to identify us as a compatible receiver
     pub fn is_receiver() -> bool {
         env::log(b"is_receover reached");
         return true;
     }
 
-    pub fn on_token_received(&mut self, sender_id: AccountId, amount: Balance, _message: Vec<u8>) -> Option<String> {
-        env::log(b"handle_receive reached");
-        assert!(sender_id == self.token_id, "Pool can only receive the named token");
+    pub fn on_token_received(&mut self, sender_id: AccountId, amount_received: U128, amount_total: U128, message: Vec<u8>) -> Option<String> {
+
+        assert_eq!(
+            self.token_id,
+            env::predecessor_account_id(),
+            "Pool can only receive the named token {}, got notifier from {}",
+            self.token_id, env::predecessor_account_id()
+        );
+        let amount: u128 = amount_received.into();
+        let uint_amount_total = amount_total.into();
         self.total_received += amount;
-        // This transfer can never fail
+
+        env::log(format!("on_token_received, incoming balance {} total {}", amount, self.total_received).as_bytes());
+
+        assert!(self.total_received == uint_amount_total, "Mismatch between token ledger and pool balances");
+
+        // TODO: Add error codes and graceful error handling
         return None;
     }
 
