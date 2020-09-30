@@ -33,7 +33,7 @@ interact with each other, promises are chained. The ledger
 locks up any tokens that are "in transit" so that they cannot be double spent,
 or subject to anything equal to Ethereum re-entrancy attack.
 In the case the promise chain fails, any locked up transactions
-are rolled back and balances restored.
+are rolled back and balances restored to the point before the promise chain was started.
 
 ## Technology
 
@@ -41,7 +41,7 @@ are rolled back and balances restored.
 
 * Automated test suite using JavaScript, jest, near-js-api
 
-* Continuous integration on Github workflows and NEAR testnet
+* Continuous integration on [Github workflows](https://github.com/miohtama/advanced-fungible/actions) and NEAR testnet
 
 ## Development
 
