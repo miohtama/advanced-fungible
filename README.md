@@ -76,9 +76,10 @@ npx jest src/token.test.js
 
 Install Rust extension. Choose *Start Rust Server* from the command palette.
 
-# Test cases
+## Test cases
 
-JavaScript test cases are written with a custom
+JavaScript test cases are written with Jest and a custom runner
+that uses https://rpc.ci-testnet.near.org chain.
 
 # Challenges
 
