@@ -5,11 +5,12 @@ const nodeFetch = require('node-fetch');
 let near;
 
 // Normal user accounts
-let deployer;
+let deployer, vitalik;
 
 beforeAll(async function () {
     near = await setUpTestConnection();
     deployer = await createAccount(near);
+    vitalik = await createUser(near);
 });
 
 test('Deploy pool contract', async () => {
@@ -41,3 +42,31 @@ test('Cannot initialize pool twice', async () => {
         expect(e.panic_msg).toMatch(/Already initialized/);
     }
 });
+
+
+test('Pool accounts received tokens', async () => {
+
+    const tokenContract = await deployContract(deployer, generateUniqueString('cnt'), 'token', abi.token);
+    await tokenContract.new({
+        // Vitalik owns us
+        owner_id: vitalik.accountId,
+        total_supply: 10000,
+    });
+
+    const poolContract = await deployContract(deployer, generateUniqueString('cnt'), 'pool', abi.pool);
+    await poolContract.new({ token_id: tokenContract.contractId });
+
+    const result = await vitalik.functionCall(
+        tokenContract.contractId,
+        "send",
+        {
+            new_owner_id: poolContract.contractId,
+            amount: 5000,
+            message: [],
+            notify: false
+        }
+    )
+    console.log(result);
+
+});
+

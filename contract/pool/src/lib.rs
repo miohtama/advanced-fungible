@@ -46,7 +46,13 @@ impl Default for BurnerPool {
 #[near_bindgen]
 impl BurnerPool {
 
-    fn on_token_received(&mut self, sender_id: AccountId, amount: Balance, _message: Vec<u8>) -> Option<String> {
+    pub fn is_receiver() -> bool {
+        env::log(b"is_receover reached");
+        return true;
+    }
+
+    pub fn on_token_received(&mut self, sender_id: AccountId, amount: Balance, _message: Vec<u8>) -> Option<String> {
+        env::log(b"handle_receive reached");
         assert!(sender_id == self.token_id, "Pool can only receive the named token");
         self.total_received += amount;
         // This transfer can never fail

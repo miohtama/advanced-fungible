@@ -6,6 +6,9 @@ lto = true
 debug = false
 panic = "abort"
 
+# https://stackoverflow.com/q/64129432/315168
+overflow-checks = true
+
 [workspace]
 members = [
     "token",
