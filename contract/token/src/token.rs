@@ -25,6 +25,8 @@ const SINGLE_CALL_GAS: u64 = 200000000000000;
  * and currently I am not sure if this information is exposed
  * on the smart contract level.
  *
+ * https://stackoverflow.com/questions/64170363/tracking-promise-chains-in-near-smart-contract-protocol
+ *
  */
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Ledger {
