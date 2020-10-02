@@ -18,6 +18,13 @@ const SINGLE_CALL_GAS: u64 = 200000000000000;
 
 /**
  * A balance ledger that keeps track of rollbackable promise transactions.
+ *
+ * TODO: Currently we lock balance by account, but this is not very flexible.
+ * What we really want to is lock balancy by a promise chain. However, this
+ * would need to be able to identify the originating transaction in NEAR
+ * and currently I am not sure if this information is exposed
+ * on the smart contract level.
+ *
  */
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct Ledger {
