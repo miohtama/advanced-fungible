@@ -2,36 +2,29 @@
 
 ## Name of Project
 
-Advanced Fungible a.k.a. nep9000
+Advanced Fungible token
+
+![logo](./logo.png)
+
+### Project description
+
+Advanced Fungible is a modern, secure and user-friendly token standard for NEAR protocol. It fixes some of the issues past token implementations, especially ERC-20 and NEP-21, have. It includes features like single-click trades, more useful metadata like icons and Rust compiler based security features. 
 
 ### Project Team
 
 Mikko Ohtamaa - coding - https://github.com/miohtama/
+
 Rachel Black - design and art advisor - https://github.com/RachBLondon
 
 ### 2 Minute Video
 
 [![](http://img.youtube.com/vi/iOBxgXtoOJ8/0.jpg)](http://www.youtube.com/watch?v=iOBxgXtoOJ8 "Rainbow Hackathon presentation")
 
-### Project description
-
-Advanced Fungible is a modern, secure and user-friendly token standard for NEAR protocol
-
-[Watch 2 minutes presentatoin on YouTube](http://www.youtube.com/watch?v=iOBxgXtoOJ8)
-
-----
-Rainbow Hackathon template ends, resume with a normal README
-----
-
 **Advanced Fungible is a modern, secure and user-friendly token standard for NEAR protocol**
 
 ![badge](https://github.com/miohtama/advanced-fungible-token/workflows/Build%20contracts%20and%20execute%20JS%20tests/badge.svg)
 
 ![logo](./logo.png)
-
-# Overview
-
-Open source contracts for a golden token standard for NEAR protocol
 
 # Walkthrough
 
