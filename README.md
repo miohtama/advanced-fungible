@@ -20,6 +20,8 @@ Rachel Black - design and art advisor - https://github.com/RachBLondon
 
 [![](http://img.youtube.com/vi/iOBxgXtoOJ8/0.jpg)](http://www.youtube.com/watch?v=iOBxgXtoOJ8 "Rainbow Hackathon presentation")
 
+# README
+
 **Advanced Fungible is a modern, secure and user-friendly token standard for NEAR protocol**
 
 ![badge](https://github.com/miohtama/advanced-fungible-token/workflows/Build%20contracts%20and%20execute%20JS%20tests/badge.svg)
