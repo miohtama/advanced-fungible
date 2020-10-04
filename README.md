@@ -2,7 +2,7 @@
 
 ## Name of Project
 
-Advanced Fungible token
+Advanced Fungible token standard
 
 ![logo](./logo.png)
 
