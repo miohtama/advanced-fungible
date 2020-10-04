@@ -44,15 +44,11 @@ Rachel Black - design and art advisor - https://github.com/RachBLondon
 
 # Benefits
 
-![explanation](./explanation.png)
-
 * Slick user and developer experience with single transaction `send()` vs. `approve()` and `transferFrom()`
 
 * Security primitives to safely interact with tokens on the NEAR sharded blockchain and promises
 
 * A lot of code examples
-
-Part of Rainbow hackathon: https://gitcoin.co/hackathon/hack-the-rainbow/projects/1497/Advanced-Fungible-Token-Standard-NEP-9000
 
 ## How does it work
 
